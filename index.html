@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AO Trainiert - PWA Workout Tracker</title>
+  
+  <!-- Verknüpfung zur externen manifest.json -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b0f19">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --card-bg: #161e2e;
+      --input-bg: #232e42;
+      --accent-amber: #f59e0b;
+      --accent-amber-hover: #d97706;
+      --accent-amber-glow: rgba(245, 158, 11, 0.25);
+      --accent-green: #22c55e;
+      --accent-green-hover: #16a34a;
+      --accent-green-glow: rgba(34, 197, 94, 0.25);
+      --accent-blue: #38bdf8;
+      --text-light: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    
+    html, body {
+      height: 100vh;
+      width: 100vw;
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      overflow: hidden;
+      position: relative;
+    }
+
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 65px;
+      background: rgba(11, 15, 25, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      z-index: 100;
+    }
+
+    .brand-logo { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; }
+    .logo-badge {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent-amber), #d97706);
+      display: flex; align-items: center;
+      justify-content: center; color: #000; font-weight: 900;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+    }
+
+    main {
+      position: fixed;
+      top: 65px;
+      bottom: 65px;
+      left: 0;
+      right: 0;
+      overflow-y: auto;
+      padding: 16px;
+      background-color: var(--bg-dark);
+    }
+
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 65px;
+      background: rgba(11, 15, 25, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      z-index: 100;
+      padding: 0 6px;
+    }
+
+    .nav-btn {
+      background: none; border: none; color: var(--text-muted);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+      font-size: 0.72rem; cursor: pointer; width: 18%; height: 50px;
+      border-radius: 12px; transition: all 0.2s ease;
+    }
+    .nav-btn:active { transform: scale(0.95); }
+    .nav-btn.active {
+      color: var(--accent-amber);
+      background: rgba(245, 158, 11, 0.12);
+      font-weight: 700;
+    }
+    .nav-btn i { font-size: 1.2rem; }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--accent-amber), var(--accent-amber-hover));
+      color: #000; border: none;
+      padding: 12px 20px; border-radius: 12px; font-weight: 700;
+      cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px; width: 100%; font-size: 0.95rem; min-height: 48px;
+      box-shadow: 0 4px 14px var(--accent-amber-glow);
+      transition: all 0.15s ease;
+    }
+    .btn:active { transform: scale(0.96); opacity: 0.9; }
+
+    .btn-secondary {
+      background: var(--input-bg);
+      color: var(--text-light);
+      border: 1px solid var(--border-color);
+      box-shadow: none;
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, var(--danger), var(--danger-hover));
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+    }
+
+    .btn-small {
+      padding: 8px 12px; font-size: 0.85rem; width: auto; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px; min-height: 40px; border-radius: 10px;
+    }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px;
+      border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+      background: rgba(245, 158, 11, 0.15); color: var(--accent-amber);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+
+    .form-group { margin-bottom: 16px; }
+    label { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
+    input, textarea, select {
+      width: 100%; padding: 12px 14px; background-color: var(--input-bg);
+      border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-light);
+      font-size: 0.95rem; min-height: 48px; transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none; border-color: var(--accent-amber);
+      box-shadow: 0 0 0 3px var(--accent-amber-glow);
+    }
+
+    .exercise-item { display: flex; flex-direction: column; gap: 10px; padding: 14px; background-color: var(--input-bg); border-radius: 14px; margin-bottom: 10px; border: 1px solid rgba(255, 255, 255, 0.05); }
+    .exercise-header { display: flex; gap: 14px; align-items: center; }
+    
+    .exercise-thumb { 
+      width: 60px; height: 60px; border-radius: 12px; object-fit: cover; 
+      background: #0b0f19; display: flex; align-items: center; justify-content: center; 
+      flex-shrink: 0; border: 1px solid var(--border-color); cursor: pointer;
+    }
+
+    .workout-exercise-img {
+      width: 100%; max-height: 160px; object-fit: contain; background: #0b0f19;
+      border-radius: 12px; margin-top: 10px; border: 1px solid var(--border-color); cursor: pointer;
+    }
+
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 200; padding: 20px; overflow-y: auto; }
+    .modal-content { background: var(--card-bg); border-radius: 20px; padding: 22px; max-width: 500px; margin: 20px auto; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+    
+    .table-container {
+      position: relative; max-height: 320px; overflow-y: auto;
+      border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); background: rgba(11, 15, 25, 0.4);
+    }
+
+    .set-table-header {
+      position: sticky; top: 0; z-index: 10; display: grid;
+      grid-template-columns: 40px 1fr 1fr 48px; gap: 10px; align-items: center;
+      background: var(--card-bg); padding: 10px 12px; border-bottom: 2px solid var(--border-color);
+      font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;
+    }
+
+    .set-row {
+      display: grid; grid-template-columns: 40px 1fr 1fr 48px; gap: 10px; align-items: center;
+      margin-bottom: 8px; padding: 8px 12px; border-radius: 12px; background: rgba(35, 46, 66, 0.6);
+      border: 1px solid transparent; transition: all 0.2s ease;
+    }
+    .set-row.done { background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.35); }
+    .set-row.done input { opacity: 0.9; color: var(--accent-green); font-weight: 700; }
+    .set-row input { text-align: center; font-weight: 700; min-height: 44px; }
+    
+    .set-check-btn {
+      height: 44px; width: 44px; border-radius: 12px; display: flex;
+      align-items: center; justify-content: center; font-size: 1.1rem; padding: 0;
+    }
+    .set-check-btn.done { background: var(--accent-green); color: #000; box-shadow: 0 2px 10px var(--accent-green-glow); }
+
+    .workout-progress-card {
+      background: linear-gradient(135deg, #161e2e, #0b0f19);
+      border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .progress-bar-bg { width: 100%; height: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; overflow: hidden; margin-top: 8px; }
+    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-amber), var(--accent-green)); width: 0%; transition: width 0.3s ease; border-radius: 10px; }
+
+    .timer-overlay {
+      position: fixed; top: 75px; right: 20px;
+      background: linear-gradient(135deg, var(--accent-amber), #d97706); color: #000;
+      padding: 10px 18px; border-radius: 20px; font-weight: 800; display: none; z-index: 300;
+      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4); font-size: 0.92rem;
+    }
+
+    .action-buttons { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; flex-wrap: wrap; }
+
+    .draggable-card { cursor: grab; transition: transform 0.15s ease, background-color 0.15s ease; user-select: none; }
+    .draggable-card:active { cursor: grabbing; }
+    .draggable-card.dragging { opacity: 0.5; background-color: #334155; border: 2px dashed var(--accent-amber); }
+    .drag-handle { color: var(--text-muted); margin-right: 10px; font-size: 1.1rem; }
+
+    .btn-group-row { display: flex; gap: 8px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-logo">
+      <div class="logo-badge">AOT</div>
+      <span>AO TRAINIERT</span>
+    </div>
+  </header>
+
+  <div id="timerOverlay" class="timer-overlay">
+    <i class="fa-solid fa-stopwatch"></i> Pause: <span id="timerSec">0</span>s
+  </div>
+
+  <main id="appMain"></main>
+
+  <nav>
+    <button class="nav-btn active" onclick="switchTab('workout', event)">
+      <i class="fa-solid fa-dumbbell"></i>
+      <span>Workout</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('plans', event)">
+      <i class="fa-solid fa-list-check"></i>
+      <span>Pläne</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('history', event)">
+      <i class="fa-solid fa-clock-rotate-left"></i>
+      <span>Historie</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('exercises', event)">
+      <i class="fa-solid fa-book-open"></i>
+      <span>Übungen</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('sync', event)">
+      <i class="fa-solid fa-file-export"></i>
+      <span>Sync & Backup</span>
+    </button>
+  </nav>
+
+  <!-- MODAL: BILD VOLLBILD / LIGHTBOX -->
+  <div id="imageLightboxModal" class="modal" onclick="closeLightbox()">
+    <div style="display:flex; align-items:center; justify-content:center; height:100%; padding:20px;">
+      <img id="lightboxImg" style="max-width:100%; max-height:85vh; object-fit:contain; border-radius:16px; border:1px solid var(--border-color); background:#0b0f19;">
+    </div>
+  </div>
+
+  <!-- MODAL: WORKOUT DETAILS (HISTORIE) -->
+  <div id="workoutDetailsModal" class="modal">
+    <div class="modal-content" id="workoutDetailsContent"></div>
+  </div>
+
+  <!-- MODAL: FREIES TRAINING STARTEN -->
+  <div id="freeWorkoutModal" class="modal">
+    <div class="modal-content">
+      <h3>Freies Workout konfigurieren</h3>
+      <div class="form-group" style="margin-top:14px;">
+        <label>Benutzerdefinierter Name (optional)</label>
+        <input type="text" id="freeWorkoutName" placeholder="z.B. Joggen, Mobilität, Yoga...">
+      </div>
+      <div class="form-group">
+        <label>Trainingsinhalt (Freitext / Notizen)</label>
+        <textarea id="freeWorkoutNotes" rows="4" placeholder="Schreibe hier frei, was du machst..."></textarea>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModal('freeWorkoutModal')">Abbrechen</button>
+        <button class="btn" onclick="startFreeWorkoutCustom()">Freies Workout Starten</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ÜBUNG ERSTELLEN / BEARBEITEN -->
+  <div id="exerciseModal" class="modal">
+    <div class="modal-content">
+      <h3 id="exModalTitle">Neue Übung anlegen</h3>
+      <input type="hidden" id="editingExId" value="">
+      <div class="form-group" style="margin-top:12px;">
+        <label>Name der Übung</label>
+        <input type="text" id="exName" placeholder="z.B. Bankdrücken oder Planks">
+      </div>
+      <div class="form-group">
+        <label>Bild hochladen (Optional)</label>
+        <input type="file" id="exImg" accept="image/*" onchange="previewImage(this)">
+        <img id="imgPreview" style="display:none; width:100%; height:140px; object-fit:contain; border-radius:12px; margin-top:8px; background:#0b0f19;" onclick="openLightbox(this.src)">
+        <button class="btn btn-danger btn-small" id="removeImgBtn" style="display:none; margin-top:8px;" onclick="removeImage()">Bild entfernen</button>
+      </div>
+      <div class="form-group">
+        <label>Beschreibung / Technik</label>
+        <textarea id="exDesc" rows="2" placeholder="Hinweise zur Ausführung..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Persönlicher Kommentar / Einstellungen</label>
+        <textarea id="exComment" rows="2" placeholder="z.B. Gerät auf Stufe 4 einstellen..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Quelle / Internet-Link (URL)</label>
+        <input type="url" id="exUrl" placeholder="https://www.youtube.com/watch?v=...">
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModal('exerciseModal')">Abbrechen</button>
+        <button class="btn" onclick="saveExercise()">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PLAN ERSTELLEN / BEARBEITEN -->
+  <div id="planModal" class="modal">
+    <div class="modal-content">
+      <h3 id="planModalTitle">Trainingsplan erstellen</h3>
+      <input type="hidden" id="editingPlanId" value="">
+      <div class="form-group" style="margin-top:12px;">
+        <label>Plan Name</label>
+        <input type="text" id="planName" placeholder="z.B. Ganzkörper A">
+      </div>
+      <div class="form-group">
+        <label>Übungen auswählen</label>
+        <select id="planExSelect" onchange="addExToPlan(this.value)">
+          <option value="">-- Übung hinzufügen --</option>
+        </select>
+      </div>
+      <div id="planExList" style="margin-bottom: 14px;"></div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModal('planModal')">Abbrechen</button>
+        <button class="btn" onclick="savePlan()">Plan Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: WORKOUT NACHERFASSEN -->
+  <div id="retroModal" class="modal">
+    <div class="modal-content">
+      <h3 id="retroModalTitle">Workout nacherfassen</h3>
+      <input type="hidden" id="retroPlanId" value="">
+      
+      <div class="form-group" style="margin-top:14px;">
+        <label>Datum des Workouts</label>
+        <input type="date" id="retroDate">
+      </div>
+      <div class="form-group">
+        <label>Startzeit</label>
+        <input type="time" id="retroTime">
+      </div>
+      <div class="form-group">
+        <label>Dauer (in Minuten)</label>
+        <input type="number" id="retroDuration" value="45" min="1">
+      </div>
+
+      <div id="retroExercisesContainer" style="margin-bottom:16px;"></div>
+
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModal('retroModal')">Abbrechen</button>
+        <button class="btn" onclick="saveRetroWorkout()">In Historie speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Registrierung des echten Service Workers (sw.js)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
+      });
+    }
+
+    function loadJSON(key, fallback) {
+      try {
+        const val = localStorage.getItem(key);
+        return val ? JSON.parse(val) : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    let appData = {
+      deviceName: localStorage.getItem('ao_device_name') || 'Geraet',
+      exercises: loadJSON('ao_exercises', [
+        { id: '1', name: 'Bankdrücken', desc: 'Flachbank', comment: 'Sitzhöhe 3', url: '', img: '' },
+        { id: '2', name: 'Kniebeugen', desc: 'Gerader Rücken', comment: 'Knie stabil halten', url: '', img: '' }
+      ]),
+      plans: loadJSON('ao_plans', []),
+      history: loadJSON('ao_history', []),
+      activeWorkout: loadJSON('ao_active_workout', null)
+    };
+
+    let tempPlanExercises = [];
+    let tempRetroExercises = [];
+    let tempImgBase64 = '';
+    let timerInterval = null;
+    let draggedIndex = null;
+
+    function saveLocal() {
+      localStorage.setItem('ao_device_name', appData.deviceName);
+      localStorage.setItem('ao_exercises', JSON.stringify(appData.exercises));
+      localStorage.setItem('ao_plans', JSON.stringify(appData.plans));
+      localStorage.setItem('ao_history', JSON.stringify(appData.history));
+      localStorage.setItem('ao_active_workout', JSON.stringify(appData.activeWorkout));
+    }
+
+    function openLightbox(src) {
+      if (!src) return;
+      document.getElementById('lightboxImg').src = src;
+      document.getElementById('imageLightboxModal').style.display = 'block';
+    }
+
+    function closeLightbox() {
+      document.getElementById('imageLightboxModal').style.display = 'none';
+    }
+
+    function switchTab(tab, ev) {
+      if (ev && ev.currentTarget) {
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        ev.currentTarget.classList.add('active');
+      }
+      renderView(tab);
+    }
+
+    function renderView(view) {
+      const main = document.getElementById('appMain');
+      if (!main) return;
+
+      if (view === 'workout') {
+        if (appData.activeWorkout) {
+          renderActiveWorkout(main);
+        } else {
+          main.innerHTML = `
+            <div class="card">
+              <h2>Bereit fürs Training?</h2>
+              <p style="color:var(--text-muted); margin: 8px 0 16px; font-size:0.9rem;">Wähle einen deiner Pläne oder starte ein freies Training mit Freitext-Inhalten.</p>
+              <div class="btn-group-row">
+                <button class="btn" onclick="openFreeWorkoutModal()">Freies Workout starten</button>
+                <button class="btn btn-secondary" onclick="openRetroModal(null)">Nacherfassen</button>
+              </div>
+            </div>
+            <h3 style="margin-bottom:12px; font-size:1.1rem;">Wähle einen Plan zur Ausführung:</h3>
+            <div id="quickPlans"></div>
+          `;
+          renderQuickPlans();
+        }
+      } else if (view === 'plans') {
+        main.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h2>Trainingspläne</h2>
+            <button class="btn" style="width:auto; padding:8px 14px;" onclick="openPlanModal()">+ Neuer Plan</button>
+          </div>
+          <div id="plansContainer"></div>
+        `;
+        renderPlansList();
+      } else if (view === 'history') {
+        renderHistoryView(main);
+      } else if (view === 'exercises') {
+        main.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h2>Übungen</h2>
+            <button class="btn" style="width:auto; padding:8px 14px;" onclick="openExerciseModal()">+ Neue Übung</button>
+          </div>
+          <div id="exercisesContainer"></div>
+        `;
+        renderExercisesList(appData.exercises);
+      } else if (view === 'sync') {
+        renderSyncView(main);
+      }
+    }
+
+    function calculateWorkoutScore(workout) {
+      let score = 0;
+      if (!workout.exercises) return 0;
+      workout.exercises.forEach(ex => {
+        if (ex.sets) {
+          ex.sets.forEach(set => {
+            const w = parseFloat(set.weight) || 0;
+            const r = parseFloat(set.reps) || 0;
+            score += (w * r);
+          });
+        }
+      });
+      return score;
+    }
+
+    function getPreviousWorkoutScore(currentWorkoutId, planName) {
+      const samePlanHistory = appData.history.filter(h => h.planName === planName && h.id !== currentWorkoutId);
+      if (samePlanHistory.length === 0) return null;
+      return calculateWorkoutScore(samePlanHistory[0]);
+    }
+
+    function openFreeWorkoutModal() {
+      document.getElementById('freeWorkoutName').value = '';
+      document.getElementById('freeWorkoutNotes').value = '';
+      openModal('freeWorkoutModal');
+    }
+
+    function startFreeWorkoutCustom() {
+      const customName = document.getElementById('freeWorkoutName').value.trim() || "Freies Workout";
+      const customNotes = document.getElementById('freeWorkoutNotes').value.trim();
+
+      const now = new Date();
+      appData.activeWorkout = {
+        planName: customName,
+        date: now.toLocaleDateString('de-DE'),
+        startTime: now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+        startTimestamp: now.getTime(),
+        exercises: [],
+        freeNotes: customNotes
+      };
+
+      saveLocal();
+      closeModal('freeWorkoutModal');
+      renderView('workout');
+    }
+
+    function startWorkout(planId) {
+      let workoutExercises = [];
+      let planName = "Freies Workout";
+
+      if (planId) {
+        const plan = appData.plans.find(p => p.id === planId);
+        if (plan) {
+          planName = plan.name;
+          const lastWorkout = appData.history.find(h => h.planName === plan.name);
+
+          workoutExercises = plan.exercises.map(item => {
+            const setsArr = [];
+            let lastExerciseData = lastWorkout ? lastWorkout.exercises.find(e => e.exerciseId === item.exerciseId || e.name === item.name) : null;
+
+            for (let i = 0; i < item.sets; i++) {
+              let weightVal = item.targetWeight !== undefined ? item.targetWeight : 1;
+              let repsVal = item.targetReps;
+
+              if (lastExerciseData && lastExerciseData.sets && lastExerciseData.sets[i]) {
+                weightVal = lastExerciseData.sets[i].weight;
+                repsVal = lastExerciseData.sets[i].reps;
+              }
+
+              setsArr.push({ weight: weightVal, reps: repsVal, done: false });
+            }
+            return { exerciseId: item.exerciseId, name: item.name, restSec: item.restSec !== undefined ? item.restSec : 0, sets: setsArr };
+          });
+        }
+      }
+
+      const now = new Date();
+      appData.activeWorkout = {
+        planName: planName,
+        date: now.toLocaleDateString('de-DE'),
+        startTime: now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+        startTimestamp: now.getTime(),
+        exercises: workoutExercises,
+        freeNotes: ''
+      };
+
+      saveLocal();
+      renderView('workout');
+    }
+
+    function openRetroModal(planId) {
+      document.getElementById('retroPlanId').value = planId || '';
+      
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+
+      document.getElementById('retroDate').value = `${year}-${month}-${day}`;
+      document.getElementById('retroTime').value = `${hours}:${minutes}`;
+      document.getElementById('retroDuration').value = 45;
+
+      let planName = "Freies Workout";
+      tempRetroExercises = [];
+
+      if (planId) {
+        const plan = appData.plans.find(p => p.id === planId);
+        if (plan) {
+          planName = plan.name;
+          const lastWorkout = appData.history.find(h => h.planName === plan.name);
+
+          tempRetroExercises = plan.exercises.map(item => {
+            const setsArr = [];
+            let lastExerciseData = lastWorkout ? lastWorkout.exercises.find(e => e.exerciseId === item.exerciseId || e.name === item.name) : null;
+
+            for (let i = 0; i < item.sets; i++) {
+              let weightVal = item.targetWeight !== undefined ? item.targetWeight : 1;
+              let repsVal = item.targetReps;
+
+              if (lastExerciseData && lastExerciseData.sets && lastExerciseData.sets[i]) {
+                weightVal = lastExerciseData.sets[i].weight;
+                repsVal = lastExerciseData.sets[i].reps;
+              }
+
+              setsArr.push({ weight: weightVal, reps: repsVal, done: true });
+            }
+            return { exerciseId: item.exerciseId, name: item.name, sets: setsArr };
+          });
+        }
+      }
+
+      document.getElementById('retroModalTitle').innerText = `Nacherfassen: ${planName}`;
+      renderRetroExercises();
+      openModal('retroModal');
+    }
+
+    function renderRetroExercises() {
+      const container = document.getElementById('retroExercisesContainer');
+      if (!container) return;
+
+      if (tempRetroExercises.length === 0) {
+        container.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem;">Keine voreingestellten Übungen.</p>`;
+        return;
+      }
+
+      container.innerHTML = tempRetroExercises.map((ex, exIdx) => `
+        <div style="background:var(--input-bg); border-radius:12px; padding:12px; margin-top:8px;">
+          <strong style="font-size:0.95rem;">${ex.name}</strong>
+          <div class="table-container" style="margin-top:8px;">
+            <div class="set-table-header">
+              <span>Satz</span>
+              <span>kg</span>
+              <span>Wdh/Sek</span>
+              <span></span>
+            </div>
+            <div style="padding: 6px;">
+              ${ex.sets.map((s, sIdx) => `
+                <div class="set-row" style="grid-template-columns: 40px 1fr 1fr 10px;">
+                  <span style="font-weight:700; color:var(--text-muted); text-align:center;">#${sIdx + 1}</span>
+                  <input type="number" value="${s.weight}" placeholder="kg" onchange="tempRetroExercises[${exIdx}].sets[${sIdx}].weight = parseFloat(this.value) || 0">
+                  <input type="number" value="${s.reps}" placeholder="Wdh/Sek" onchange="tempRetroExercises[${exIdx}].sets[${sIdx}].reps = parseFloat(this.value) || 0">
+                  <span></span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function saveRetroWorkout() {
+      const planId = document.getElementById('retroPlanId').value;
+      const rawDate = document.getElementById('retroDate').value;
+      const timeVal = document.getElementById('retroTime').value;
+      const durationVal = parseInt(document.getElementById('retroDuration').value) || 0;
+
+      if (!rawDate || !timeVal) {
+        return alert('Bitte Datum und Startzeit eingeben.');
+      }
+
+      let planName = "Freies Workout";
+      if (planId) {
+        const plan = appData.plans.find(p => p.id === planId);
+        if (plan) planName = plan.name;
+      }
+
+      const dateParts = rawDate.split('-');
+      const formattedDate = `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}`;
+
+      const completedWorkout = {
+        id: Date.now().toString(),
+        planName: planName,
+        date: formattedDate,
+        startTime: timeVal,
+        durationFormatted: `${durationVal} Min 0 Sek`,
+        exercises: tempRetroExercises,
+        freeNotes: ''
+      };
+
+      appData.history.unshift(completedWorkout);
+      saveLocal();
+      exportFile();
+      closeModal('retroModal');
+      renderView('history');
+    }
+
+    function renderActiveWorkout(container) {
+      let totalSets = 0;
+      let doneSets = 0;
+      appData.activeWorkout.exercises.forEach(ex => {
+        totalSets += ex.sets.length;
+        doneSets += ex.sets.filter(s => s.done).length;
+      });
+      const pct = totalSets > 0 ? Math.round((doneSets / totalSets) * 100) : 100;
+
+      container.innerHTML = `
+        <div class="workout-progress-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; flex-wrap:wrap; gap:8px;">
+            <div>
+              <h2 style="font-size:1.25rem;">${appData.activeWorkout.planName}</h2>
+              <span style="font-size:0.8rem; color:var(--text-muted);"><i class="fa-regular fa-clock"></i> Gestartet um ${appData.activeWorkout.startTime} Uhr</span>
+            </div>
+            <div class="btn-group-row">
+              <button class="btn btn-secondary btn-small" onclick="cancelWorkout()">Ohne Speichern</button>
+              <button class="btn btn-danger btn-small" onclick="finishWorkout()">Abschließen</button>
+            </div>
+          </div>
+          ${totalSets > 0 ? `
+            <div style="margin-top:12px;">
+              <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:700;">
+                <span style="color:var(--text-muted);">${doneSets} von${totalSets} Sätzen absolviert</span>
+                <span style="color:var(--accent-green);">${pct}%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width:${pct}%;"></div>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+
+        ${appData.activeWorkout.freeNotes ? `
+          <div class="card">
+            <h3 style="font-size:1rem; margin-bottom:6px; color:var(--accent-amber);"><i class="fa-solid fa-note-sticky"></i> Trainingsinhalt (Freitext)</h3>
+            <p style="font-size:0.9rem; white-space: pre-wrap; color:var(--text-light); line-height:1.4;">${appData.activeWorkout.freeNotes}</p>
+          </div>
+        ` : ''}
+
+        ${appData.activeWorkout.exercises.map((ex, exIdx) => {
+          const exMeta = appData.exercises.find(e => e.id === ex.exerciseId || e.name === ex.name) || {};
+          return `
+            <div class="card">
+              <div style="margin-bottom:12px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <h3 style="font-size:1.1rem; color:var(--text-light);">${ex.name}</h3>${ex.restSec ? `<span class="badge"><i class="fa-solid fa-stopwatch"></i> Pause: ${ex.restSec}s</span>` : ''}
+                </div>
+                ${exMeta.img ? `<img src="${exMeta.img}" class="workout-exercise-img" onclick="openLightbox(this.src)">` : ''}
+                ${exMeta.desc ? `<div style="font-size:0.85rem; color:var(--text-muted); margin-top:8px;"><strong style="color:var(--text-light);">Technik:</strong> ${exMeta.desc}</div>` : ''}
+                ${exMeta.comment ? `<div style="font-size:0.85rem; color:var(--accent-amber); margin-top:4px;"><strong>Kommentar:</strong> ${exMeta.comment}</div>` : ''}
+                ${exMeta.url ? `<div style="margin-top:8px;"><a href="${exMeta.url}" target="_blank" class="btn btn-secondary btn-small" style="color:var(--accent-blue); padding:4px 10px; font-size:0.8rem;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Quelle öffnen</a></div>` : ''}
+              </div>
+              <div class="table-container">
+                <div class="set-table-header">
+                  <span>Satz</span>
+                  <span>kg</span>
+                  <span>Wdh/Sek</span>
+                  <span>OK</span>
+                </div>
+                <div style="padding:6px;">
+                  ${ex.sets.map((set, sIdx) => `
+                    <div class="set-row ${set.done ? 'done' : ''}">
+                      <span style="font-weight:700; color:var(--text-muted); text-align:center;">#${sIdx + 1}</span>
+                      <input type="number" value="${set.weight}" placeholder="kg" onchange="updateSet(${exIdx}, ${sIdx}, 'weight', this.value)">
+                      <input type="number" value="${set.reps}" placeholder="Wdh/Sek" onchange="updateSet(${exIdx}, ${sIdx}, 'reps', this.value)">
+                      <button class="btn set-check-btn ${set.done ? 'done' : 'btn-secondary'}" onclick="toggleSet(${exIdx}, ${sIdx}, ${ex.restSec !== undefined ? ex.restSec : 0})">
+                        <i class="fa-solid fa-check"></i>
+                      </button>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      `;
+    }
+
+    function cancelWorkout() {
+      if (confirm('Workout wirklich abbrechen, ohne es in der Historie zu speichern?')) {
+        appData.activeWorkout = null;
+        saveLocal();
+        renderView('workout');
+      }
+    }
+
+    function updateSet(exIdx, sIdx, field, val) {
+      appData.activeWorkout.exercises[exIdx].sets[sIdx][field] = parseFloat(val) || 0;
+      saveLocal();
+    }
+
+    function toggleSet(exIdx, sIdx, restSec) {
+      const set = appData.activeWorkout.exercises[exIdx].sets[sIdx];
+      set.done = !set.done;
+      saveLocal();
+      if (set.done && restSec > 0) {
+        startTimer(restSec);
+      }
+      renderView('workout');
+    }
+
+    function startTimer(sec) {
+      clearInterval(timerInterval);
+      let timeLeft = sec;
+      const overlay = document.getElementById('timerOverlay');
+      const text = document.getElementById('timerSec');
+      if (!overlay || !text) return;
+      overlay.style.display = 'block';
+      text.innerText = timeLeft;
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        text.innerText = timeLeft;
+        if (timeLeft <= 0) { clearInterval(timerInterval); overlay.style.display = 'none'; }
+      }, 1000);
+    }
+
+    function finishWorkout() {
+      if (confirm('Workout abschließen und in die Historie speichern?')) {
+        const now = new Date();
+        const durationMs = now.getTime() - appData.activeWorkout.startTimestamp;
+        const totalMin = Math.floor(durationMs / 60000);
+        const totalSec = Math.floor((durationMs % 60000) / 1000);
+
+        const completedWorkout = {
+          id: Date.now().toString(),
+          planName: appData.activeWorkout.planName,
+          date: now.toLocaleDateString('de-DE'),
+          startTime: appData.activeWorkout.startTime,
+          durationFormatted: `${totalMin} Min ${totalSec} Sek`,
+          exercises: appData.activeWorkout.exercises,
+          freeNotes: appData.activeWorkout.freeNotes || ''
+        };
+
+        appData.history.unshift(completedWorkout);
+        appData.activeWorkout = null;
+        saveLocal();
+        exportFile();
+        renderView('history');
+      }
+    }
+
+    function renderHistoryView(container) {
+      if (appData.history.length === 0) {
+        container.innerHTML = `
+          <h2>Historie</h2>
+          <div class="card" style="margin-top:16px;">
+            <p style="color:var(--text-muted);">Noch keine absolvierten Workouts vorhanden. Starte ein Workout und schließe es ab!</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h2>Workout Historie</h2>
+          <button class="btn btn-danger btn-small" onclick="clearHistory()"><i class="fa-solid fa-trash"></i> Alle leeren</button>
+        </div>
+        ${appData.history.map(w => {
+          const currentScore = calculateWorkoutScore(w);
+          const prevScore = getPreviousWorkoutScore(w.id, w.planName);
+          
+          let scoreColor = 'var(--accent-blue)';
+          let scoreIcon = '<i class="fa-solid fa-equals"></i>';
+
+          if (currentScore > 0 && prevScore !== null && prevScore > 0) {
+            if (currentScore > prevScore) {
+              scoreColor = 'var(--accent-green)';
+              scoreIcon = '<i class="fa-solid fa-arrow-trend-up"></i>';
+            } else if (currentScore < prevScore) {
+              scoreColor = 'var(--danger)';
+              scoreIcon = '<i class="fa-solid fa-arrow-trend-down"></i>';
+            } else {
+              scoreColor = 'var(--accent-blue)';
+              scoreIcon = '<i class="fa-solid fa-equals"></i>';
+            }
+          }
+
+          return `
+            <div class="card" style="cursor:pointer;" onclick="openWorkoutDetails('${w.id}')">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:10px; margin-bottom:8px;">
+                <div>
+                  <strong style="font-size:1.05rem;">${w.planName}</strong>
+                  <div style="font-size:0.8rem; color:var(--accent-amber); margin-top:2px; font-weight:600;">${w.date}</div>
+                </div>
+                <button class="btn btn-danger btn-small" style="padding:4px 8px;" onclick="event.stopPropagation(); deleteSingleWorkout('${w.id}')" title="Dieses Workout löschen">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; color:var(--text-muted);">
+                <span><i class="fa-solid fa-clock"></i> ${w.startTime} Uhr \vert{}${w.durationFormatted}</span>
+                <span style="color: ${scoreColor}; font-weight: 700; font-size: 0.9rem;">
+                  Score: ${currentScore} kg${scoreIcon}
+                </span>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      `;
+    }
+
+    function openWorkoutDetails(workoutId) {
+      const w = appData.history.find(item => item.id === workoutId);
+      if (!w) return;
+
+      const currentScore = calculateWorkoutScore(w);
+
+      const contentEl = document.getElementById('workoutDetailsContent');
+      contentEl.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+          <div>
+            <h3 style="font-size:1.2rem;">${w.planName}</h3>
+            <span style="font-size:0.8rem; color:var(--accent-amber);">${w.date} | ${w.startTime} Uhr</span>
+          </div>
+          <button class="btn btn-secondary btn-small" onclick="closeModal('workoutDetailsModal')">Schließen</button>
+        </div>
+        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">
+          Dauer: <strong>${w.durationFormatted}</strong> | Gesamt-Score: <strong style="color:var(--text-light);">${currentScore} kg</strong>
+        </div>
+        ${w.freeNotes ? `<div style="font-size:0.85rem; background:rgba(245,158,11,0.08); padding:8px 10px; border-radius:8px; margin-bottom:12px; color:var(--text-light); white-space:pre-wrap;"><strong style="color:var(--accent-amber);">Notiz:</strong> ${w.freeNotes}</div>` : ''}
+        <div>
+          ${w.exercises && w.exercises.length > 0 ? w.exercises.map(ex => `
+            <div style="font-size:0.85rem; margin-top:8px; background:var(--input-bg); padding:10px; border-radius:10px;">
+              <span style="color:var(--accent-blue); font-weight:bold; display:block; margin-bottom:4px;">${ex.name}:</span>${ex.sets.map((s, sIdx) => `Satz #${sIdx + 1}: ${s.weight} kg × ${s.reps}`).join(' | ') || 'Keine Sätze erfasst'}
+            </div>
+          `).join('') : '<p style="color:var(--text-muted); font-size:0.85rem;">Keine Übungsdaten vorhanden.</p>'}
+        </div>
+      `;
+      openModal('workoutDetailsModal');
+    }
+
+    function deleteSingleWorkout(workoutId) {
+      if (confirm('Möchtest du dieses spezifische Workout wirklich aus der Historie löschen?')) {
+        appData.history = appData.history.filter(w => w.id !== workoutId);
+        saveLocal();
+        renderView('history');
+      }
+    }
+
+    function clearHistory() {
+      if (confirm('Gesamte Historie wirklich löschen?')) {
+        appData.history = [];
+        saveLocal();
+        renderView('history');
+      }
+    }
+
+    function openPlanModal(planId = null) {
+      document.getElementById('editingPlanId').value = planId || '';
+      const titleEl = document.getElementById('planModalTitle');
+
+      if (planId) {
+        titleEl.innerText = "Trainingsplan bearbeiten";
+        const plan = appData.plans.find(p => p.id === planId);
+        document.getElementById('planName').value = plan.name;
+        tempPlanExercises = JSON.parse(JSON.stringify(plan.exercises));
+      } else {
+        titleEl.innerText = "Trainingsplan erstellen";
+        document.getElementById('planName').value = '';
+        tempPlanExercises = [];
+      }
+
+      const select = document.getElementById('planExSelect');
+      select.innerHTML = '<option value="">-- Übung hinzufügen --</option>' + 
+        appData.exercises.map(ex => `<option value="${ex.id}">${ex.name}</option>`).join('');
+      renderPlanExList();
+      openModal('planModal');
+    }
+
+    function addExToPlan(id) {
+      if (!id) return;
+      const ex = appData.exercises.find(e => e.id === id);
+      if (ex) {
+        tempPlanExercises.push({ exerciseId: ex.id, name: ex.name, sets: 3, targetReps: 10, targetWeight: 1, restSec: 0 });
+        renderPlanExList();
+      }
+    }
+
+    function removeExFromPlan(idx) {
+      if (confirm('Möchtest du diese Übung wirklich aus dem Plan entfernen?')) {
+        tempPlanExercises.splice(idx, 1);
+        renderPlanExList();
+      }
+    }
+
+    function renderPlanExList() {
+      const container = document.getElementById('planExList');
+      container.innerHTML = tempPlanExercises.map((item, idx) => `
+        <div class="card draggable-card" draggable="true" data-index="${idx}" style="padding:12px; margin-top:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center;">
+              <i class="fa-solid fa-bars drag-handle"></i>
+              <strong>${item.name}</strong>
+            </div>
+            <button class="btn btn-danger btn-small" style="padding:4px 8px;" onclick="removeExFromPlan(${idx})"><i class="fa-solid fa-trash"></i></button>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:6px; margin-top:8px;">
+            <div><label>Sätze</label><input type="number" value="${item.sets}" onchange="tempPlanExercises[${idx}].sets = parseInt(this.value)"></div>
+            <div><label>Wdh/Sek</label><input type="number" value="${item.targetReps}" onchange="tempPlanExercises[${idx}].targetReps = parseInt(this.value)"></div>
+            <div><label>kg</label><input type="number" value="${item.targetWeight !== undefined ? item.targetWeight : 1}" onchange="tempPlanExercises[${idx}].targetWeight = parseFloat(this.value)"></div>
+            <div><label>Pause(s)</label><input type="number" value="${item.restSec !== undefined ? item.restSec : 0}" onchange="tempPlanExercises[${idx}].restSec = parseInt(this.value)"></div>
+          </div>
+        </div>
+      `).join('');
+
+      addDragAndDropListeners();
+    }
+
+    function addDragAndDropListeners() {
+      const draggables = document.querySelectorAll('.draggable-card');
+      draggables.forEach(card => {
+        card.addEventListener('dragstart', () => {
+          draggedIndex = parseInt(card.getAttribute('data-index'));
+          card.classList.add('dragging');
+        });
+
+        card.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+        });
+
+        card.addEventListener('dragover', (e) => {
+          e.preventDefault();
+        });
+
+        card.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const targetIndex = parseInt(card.getAttribute('data-index'));
+          if (draggedIndex !== null && draggedIndex !== targetIndex) {
+            const movedItem = tempPlanExercises.splice(draggedIndex, 1)[0];
+            tempPlanExercises.splice(targetIndex, 0, movedItem);
+            renderPlanExList();
+          }
+        });
+      });
+    }
+
+    function savePlan() {
+      const name = document.getElementById('planName').value.trim();
+      const planId = document.getElementById('editingPlanId').value;
+
+      if (!name || tempPlanExercises.length === 0) return alert('Bitte Name & Übungen eingeben.');
+
+      if (planId) {
+        const plan = appData.plans.find(p => p.id === planId);
+        if (plan) {
+          plan.name = name;
+          plan.exercises = tempPlanExercises;
+        }
+      } else {
+        appData.plans.push({ id: Date.now().toString(), name: name, exercises: tempPlanExercises });
+      }
+
+      saveLocal();
+      exportFile();
+      closeModal('planModal');
+      renderView('plans');
+    }
+
+    function copyPlan(planId) {
+      const plan = appData.plans.find(p => p.id === planId);
+      if (plan) {
+        const newPlan = JSON.parse(JSON.stringify(plan));
+        newPlan.id = Date.now().toString();
+        newPlan.name = plan.name + " (Kopie)";
+        appData.plans.push(newPlan);
+        saveLocal();
+        exportFile();
+        renderView('plans');
+      }
+    }
+
+    function deletePlan(planId) {
+      if (confirm('Plan wirklich löschen?')) {
+        appData.plans = appData.plans.filter(p => p.id !== planId);
+        saveLocal();
+        renderView('plans');
+      }
+    }
+
+    function renderPlansList() {
+      const container = document.getElementById('plansContainer');
+      if (!container) return;
+      if (appData.plans.length === 0) {
+        container.innerHTML = `<p style="color:var(--text-muted);">Noch keine Trainingspläne vorhanden.</p>`;
+        return;
+      }
+      container.innerHTML = appData.plans.map(p => `
+        <div class="card">
+          <h3 style="font-size:1.15rem; margin-bottom:4px;">${p.name}</h3>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:12px;">${p.exercises.length} Übungen</p>
+          <div class="action-buttons" style="margin-top:4px;">
+            <button class="btn btn-secondary btn-small" onclick="openPlanModal('${p.id}')"><i class="fa-solid fa-pen"></i> Bearbeiten</button>
+            <button class="btn btn-secondary btn-small" onclick="copyPlan('${p.id}')"><i class="fa-solid fa-copy"></i> Kopieren</button>
+            <button class="btn btn-danger btn-small" onclick="deletePlan('${p.id}')"><i class="fa-solid fa-trash"></i> Löschen</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderQuickPlans() {
+      const container = document.getElementById('quickPlans');
+      if (!container) return;
+      container.innerHTML = appData.plans.map(p => `
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+          <div><strong style="font-size:1rem;">${p.name}</strong></div>
+          <div class="btn-group-row">
+            <button class="btn" style="width:auto; padding:6px 14px;" onclick="startWorkout('${p.id}')">Starten</button>
+            <button class="btn btn-secondary" style="width:auto; padding:6px 12px;" onclick="openRetroModal('${p.id}')">Nacherfassen</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openExerciseModal(exId = null) {
+      document.getElementById('editingExId').value = exId || '';
+      const titleEl = document.getElementById('exModalTitle');
+      const imgPreview = document.getElementById('imgPreview');
+      const removeBtn = document.getElementById('removeImgBtn');
+
+      if (exId) {
+        titleEl.innerText = "Übung bearbeiten";
+        const ex = appData.exercises.find(e => e.id === exId);
+        document.getElementById('exName').value = ex.name;
+        document.getElementById('exDesc').value = ex.desc || '';
+        document.getElementById('exComment').value = ex.comment || '';
+        document.getElementById('exUrl').value = ex.url || '';
+        tempImgBase64 = ex.img || '';
+
+        if (tempImgBase64) {
+          imgPreview.src = tempImgBase64;
+          imgPreview.style.display = 'block';
+          removeBtn.style.display = 'inline-block';
+        } else {
+          imgPreview.style.display = 'none';
+          removeBtn.style.display = 'none';
+        }
+      } else {
+        titleEl.innerText = "Neue Übung anlegen";
+        document.getElementById('exName').value = '';
+        document.getElementById('exDesc').value = '';
+        document.getElementById('exComment').value = '';
+        document.getElementById('exUrl').value = '';
+        tempImgBase64 = '';
+        imgPreview.style.display = 'none';
+        removeBtn.style.display = 'none';
+      }
+
+      openModal('exerciseModal');
+    }
+
+    function previewImage(input) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          tempImgBase64 = e.target.result;
+          const img = document.getElementById('imgPreview');
+          img.src = tempImgBase64;
+          img.style.display = 'block';
+          document.getElementById('removeImgBtn').style.display = 'inline-block';
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function removeImage() {
+      if (confirm('Möchtest du das Bild wirklich entfernen?')) {
+        tempImgBase64 = '';
+        document.getElementById('imgPreview').style.display = 'none';
+        document.getElementById('removeImgBtn').style.display = 'none';
+        document.getElementById('exImg').value = '';
+      }
+    }
+
+    function saveExercise() {
+      const name = document.getElementById('exName').value.trim();
+      const exId = document.getElementById('editingExId').value;
+
+      if (!name) return alert('Bitte Name eingeben');
+
+      if (exId) {
+        const ex = appData.exercises.find(e => e.id === exId);
+        if (ex) {
+          ex.name = name;
+          ex.desc = document.getElementById('exDesc').value.trim();
+          ex.comment = document.getElementById('exComment').value.trim();
+          ex.url = document.getElementById('exUrl').value.trim();
+          ex.img = tempImgBase64;
+        }
+      } else {
+        appData.exercises.push({
+          id: Date.now().toString(),
+          name: name,
+          desc: document.getElementById('exDesc').value.trim(),
+          comment: document.getElementById('exComment').value.trim(),
+          url: document.getElementById('exUrl').value.trim(),
+          img: tempImgBase64
+        });
+      }
+
+      saveLocal();
+      closeModal('exerciseModal');
+      tempImgBase64 = '';
+      renderView('exercises');
+    }
+
+    function copyExercise(exId) {
+      const ex = appData.exercises.find(e => e.id === exId);
+      if (ex) {
+        const newEx = JSON.parse(JSON.stringify(ex));
+        newEx.id = Date.now().toString();
+        newEx.name = ex.name + " (Kopie)";
+        appData.exercises.push(newEx);
+        saveLocal();
+        renderView('exercises');
+      }
+    }
+
+    function deleteExercise(exId) {
+      if (confirm('Übung wirklich löschen?')) {
+        appData.exercises = appData.exercises.filter(e => e.id !== exId);
+        saveLocal();
+        renderView('exercises');
+      }
+    }
+
+    function renderExercisesList(list) {
+      const container = document.getElementById('exercisesContainer');
+      if (!container) return;
+      if (list.length === 0) {
+        container.innerHTML = `<p style="color:var(--text-muted);">Noch keine Übungen angelegt.</p>`;
+        return;
+      }
+      container.innerHTML = list.map(ex => `
+        <div class="exercise-item">
+          <div class="exercise-header">
+            ${ex.img ? `<img src="${ex.img}" class="exercise-thumb" onclick="openLightbox(this.src)">` : `<div class="exercise-thumb"><i class="fa-solid fa-dumbbell" style="font-size:1.2rem; color:var(--text-muted);"></i></div>`}
+            <div style="flex:1;">
+              <strong style="font-size:1rem;">${ex.name}</strong>
+              ${ex.desc ? `<div style="font-size:0.8rem; color:var(--text-muted); margin-top:3px;"><strong>Technik:</strong> ${ex.desc}</div>` : ''}
+              ${ex.comment ? `<div style="font-size:0.8rem; color:var(--accent-amber); margin-top:3px;"><strong>Kommentar:</strong> ${ex.comment}</div>` : ''}
+            </div>
+          </div>
+          <div class="action-buttons">
+            ${ex.url ? `<a href="${ex.url}" target="_blank" class="btn btn-secondary btn-small" style="color:var(--accent-blue);"><i class="fa-solid fa-arrow-up-right-from-square"></i> Quelle öffnen</a>` : ''}
+            <button class="btn btn-secondary btn-small" onclick="openExerciseModal('${ex.id}')"><i class="fa-solid fa-pen"></i> Bearbeiten</button>
+            <button class="btn btn-secondary btn-small" onclick="copyExercise('${ex.id}')"><i class="fa-solid fa-copy"></i> Kopieren</button>
+            <button class="btn btn-danger btn-small" onclick="deleteExercise('${ex.id}')"><i class="fa-solid fa-trash"></i> Löschen</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderSyncView(main) {
+      main.innerHTML = `
+        <div class="card">
+          <h2>Geräte-Einstellung</h2>
+          <div class="form-group" style="margin-top:12px;">
+            <label>Name dieses Geräts (für den Dateinamen):</label>
+            <input type="text" id="deviceNameInput" value="${appData.deviceName}" onchange="updateDeviceName(this.value)">
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>1. Daten als Datei exportieren</h2>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin:8px 0 14px;">Erstelle eine Sicherungsdatei inkl. Gerätename, Datum & Uhrzeit:</p>
+          <button class="btn" style="margin-bottom:6px;" onclick="exportFile()"><i class="fa-solid fa-download"></i> Backup-Datei speichern</button>
+        </div>
+
+        <div class="card">
+          <h2>2. Backup-Datei importieren</h2>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin:8px 0 14px;">Wähle eine gespeicherte Backup-Datei von deinem anderen Gerät aus, um den Stand zu übernehmen:</p>
+          <div class="form-group">
+            <input type="file" accept=".json" onchange="importFile(this)">
+          </div>
+        </div>
+      `;
+    }
+
+    function updateDeviceName(val) {
+      const cleanName = val.trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+      appData.deviceName = cleanName || 'Geraet';
+      saveLocal();
+    }
+
+    function exportFile() {
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+
+      const devName = appData.deviceName.replace(/[^a-zA-Z0-9_-]/g, '_') || 'Geraet';
+      const filename = `AO_Trainiert_Backup_${devName}_${day}-${month}-${year}_${hours}-${minutes}.json`;
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
+      const anchor = document.createElement('a');
+      anchor.setAttribute("href", dataStr);
+      anchor.setAttribute("download", filename);
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+    }
+
+    function importFile(input) {
+      const file = input.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const imported = JSON.parse(e.target.result);
+            appData.exercises = imported.exercises || appData.exercises;
+            appData.plans = imported.plans || appData.plans;
+            appData.history = imported.history || appData.history;
+            appData.activeWorkout = imported.activeWorkout || appData.activeWorkout;
+            
+            saveLocal();
+            alert('Backup erfolgreich geladen!');
+            renderView('workout');
+          } catch(err) {
+            alert('Fehler beim Laden der Datei. Keine gültige Backup-Datei.');
+          }
+        };
+        reader.readAsText(file);
+      }
+    }
+
+    function openModal(id) { document.getElementById(id).style.display = 'block'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    renderView('workout');
+  </script>
+</body>
+</html>
